@@ -20,7 +20,6 @@ import org.junit.runners.Suite;
 import org.junit.runners.Suite.SuiteClasses;
 import org.vanilladb.core.storage.buffer.BufferConcurrencyTest;
 import org.vanilladb.core.storage.buffer.BufferMgrConcurrencyTest;
-import org.vanilladb.core.storage.buffer.BufferPoolConcurrencyTest;
 import org.vanilladb.core.storage.buffer.BufferTest;
 import org.vanilladb.core.storage.buffer.LastLSNTest;
 import org.vanilladb.core.storage.file.FileMgrConconcurrencyTest;
@@ -35,8 +34,7 @@ import org.vanilladb.core.storage.file.PageConcurrencyTest;
 	
 	// storage.buffer
 	BufferTest.class, BufferConcurrencyTest.class,
-	BufferMgrConcurrencyTest.class, BufferPoolConcurrencyTest.class,
-	LastLSNTest.class,
+	BufferMgrConcurrencyTest.class, LastLSNTest.class,
 })
 public class Assignment4TestSuite {
 	
