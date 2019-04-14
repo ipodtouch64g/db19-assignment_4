@@ -58,9 +58,6 @@ public class TpccConstants {
 	public static final int FREQUENCY_TOTAL;
 	public static final int FREQUENCY_NEW_ORDER;
 	public static final int FREQUENCY_PAYMENT;
-	public static final int FREQUENCY_ORDER_STATUS;
-	public static final int FREQUENCY_DELIVERY;
-	public static final int FREQUENCY_STOCK_LEVEL;
 	static {
 		FREQUENCY_TOTAL = BenchProperties.getLoader().getPropertyAsInteger(
 				TpccConstants.class.getName() + ".FREQUENCY_TOTAL", 100);
@@ -68,23 +65,11 @@ public class TpccConstants {
 				TpccConstants.class.getName() + ".FREQUENCY_NEW_ORDER", 45);
 		FREQUENCY_PAYMENT = BenchProperties.getLoader().getPropertyAsInteger(
 				TpccConstants.class.getName() + ".FREQUENCY_PAYMENT", 43);
-		FREQUENCY_ORDER_STATUS = BenchProperties.getLoader().getPropertyAsInteger(
-				TpccConstants.class.getName() + ".FREQUENCY_ORDER_STATUS", 4);
-		FREQUENCY_DELIVERY = BenchProperties.getLoader().getPropertyAsInteger(
-				TpccConstants.class.getName() + ".FREQUENCY_DELIVERY", 4);
-		FREQUENCY_STOCK_LEVEL = BenchProperties.getLoader().getPropertyAsInteger(
-				TpccConstants.class.getName() + ".FREQUENCY_STOCK_LEVEL", 4);
 	}
 
 	// Range for uniformly selecting transaction type
 	public static final int RANGE_NEW_ORDER = FREQUENCY_NEW_ORDER;
 	public static final int RANGE_PAYMENT = RANGE_NEW_ORDER + FREQUENCY_PAYMENT;
-	public static final int RANGE_ORDER_STATUS = RANGE_PAYMENT
-			+ FREQUENCY_ORDER_STATUS;
-	public static final int RANGE_DELIVERY = RANGE_ORDER_STATUS
-			+ FREQUENCY_DELIVERY;
-	public static final int RANGE_STOCK_LEVEL = RANGE_DELIVERY
-			+ FREQUENCY_STOCK_LEVEL;
 
 	// Minimal keying time in second
 	public static final int KEYING_NEW_ORDER = 18;

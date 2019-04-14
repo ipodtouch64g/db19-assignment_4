@@ -57,7 +57,7 @@ class BufferPoolMgr {
 			bufferPool[i] = new Buffer();
 		
 		if (logger.isLoggable(Level.INFO))
-			logger.info("Buffer pool is ready (assignment 3 version)");
+			logger.info("Buffer pool is ready (assignment 4 version)");
 	}
 
 	/**

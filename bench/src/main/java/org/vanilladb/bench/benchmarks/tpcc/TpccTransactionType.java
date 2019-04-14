@@ -22,7 +22,7 @@ public enum TpccTransactionType implements TransactionType {
 	SCHEMA_BUILDER, TESTBED_LOADER,
 	
 	// TPC-C procedures
-	NEW_ORDER, PAYMENT, ORDER_STATUS, DELIVERY, STOCK_LEVEL;
+	NEW_ORDER, PAYMENT;
 	
 	public static TpccTransactionType fromProcedureId(int pid) {
 		return TpccTransactionType.values()[pid];
