@@ -57,12 +57,12 @@ This time, we provide the TPC-C and a micro-benchmark to measure your performanc
 
 There are some parameters in the micro-benchmark you can adjust:
 
-- NUM_RTES (value > 1) - The number of clients
-- RW_TX_RATE (1.0 >= value >= 0.0) - The probability of generating a write transaction
-- TOTAL_READ_COUNT (value >= 1) - The number of records read by a transaction
-- LOCAL_HOT_COUNT (TOTAL_READ_COUNT >= value >= 0) - The number of **hot** records read by a transaction
-- WRITE_RATIO_IN_RW_TX (1.0 >= value >= 0.0) - The ratio of writes to the total reads of a transaction
-- HOT_CONFLICT_RATE (0.1 >= value >= 0.001) - The probability of a hot record conclicting with each other
+- `NUM_RTES` (value > 1) - The number of clients
+- `RW_TX_RATE` (1.0 >= value >= 0.0) - The probability of generating a write transaction
+- `TOTAL_READ_COUNT` (value >= 1) - The number of records read by a transaction
+- `LOCAL_HOT_COUNT` (TOTAL_READ_COUNT >= value >= 0) - The number of **hot** records read by a transaction
+- `WRITE_RATIO_IN_RW_TX` (1.0 >= value >= 0.0) - The ratio of writes to the total reads of a transaction
+- `HOT_CONFLICT_RATE` (0.1 >= value >= 0.001) - The probability of a hot record conclicting with each other
 
 For the TPC-C benchmark, we suggest you to only ajdust this parameter:
 
@@ -70,7 +70,7 @@ For the TPC-C benchmark, we suggest you to only ajdust this parameter:
 
 There is also a configuration in VanillaCore you can try:
 
-- BUFFER_POOL_SIZE (value > 1) - The size of buffer pool
+- `BUFFER_POOL_SIZE` (value > 1) - The size of buffer pool
 
 Note that it is hard to see the effect of the optimization for `org.vanilladb.core.storage.file` when VanillaCore has a large buffer pool because it makes VanillaCore seldom fetch data from disks.
 
