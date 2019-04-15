@@ -1,7 +1,9 @@
 # Assignment 4
+
 In this assignment, you are asked to optimize the file and buffer modules of VanillaCore.
 
 ## Steps
+
 To complete this assignment, you need to
 
 1. Fork the Assignment 4 project
@@ -12,11 +14,9 @@ To complete this assignment, you need to
 6. Write an experiment analysis report
 7. Push your repository to Gitlab and open a merge request
 
-
 ## Main Objective: Optimization
 
 The current file and buffer manager of VanillaCore are not optimized for multi-threading. We just wrap all public methods with `synchronized` to ensure thread-safty. The main objective of this assignment is to optimize these two modules for better performance.
-
 
 ## Constraints
 
@@ -26,7 +26,7 @@ Here are some constraints you must follow during coding
   - `org.vanilladb.core.storage.file`
   - `org.vanilladb.core.storage.buffer`
 - You **can not** change the existing public APIs (public methods, public properties), but you can add new public methods for optimization.
-- Your optimization must pass all the test cases.
+- Your code must pass all the test cases (`Assignment4TestSuite`).
 
 You must perform **at least one** optimization for each each module and show the overall improvement achieved by your optimization in the experiments.
 
@@ -56,6 +56,7 @@ Then, for each optimization you performs, you should run experiments to show the
 This time, we provide the TPC-C and a micro-benchmark to measure your performance. The micro-benchmark is very simliar to the benchmarker in assignment 2.
 
 There are some parameters in the micro-benchmark you can adjust:
+
 - NUM_RTES (value > 1) - The number of clients
 - RW_TX_RATE (1.0 >= value >= 0.0) - The probability of generating a write transaction
 - TOTAL_READ_COUNT (value >= 1) - The number of records read by a transaction
@@ -68,6 +69,7 @@ For the TPC-C benchmark, we suggest you to only ajdust this parameter:
 - `NUM_WAREHOUSES` - The number of warehouses used in the experiment. This also controls the conflict rate since transactions have less chance to conflict as there are more warehouses.
 
 There is also a configuration in VanillaCore you can try:
+
 - BUFFER_POOL_SIZE (value > 1) - The size of buffer pool
 
 Note that it is hard to see the effect of the optimization for `org.vanilladb.core.storage.file` when VanillaCore has a large buffer pool because it makes VanillaCore seldom fetch data from disks.
@@ -129,6 +131,7 @@ Due to the complexity of this assignment, we hope you can come to explain your w
 ### Smaller Critical Section
 
 Critical sections are usually used to protect some shared resource
+
 - Reducing the size of critical sections usually makes transaction have less chance to block each other
 - Some kinds of transactions will be stalled during execution due to some critical sections, even if they do not need to use those resource
 - Java standard library provides lots of convenient data structures that optimized for multi-threading. You can find them in `java.util.concurrent`.
@@ -142,4 +145,5 @@ Some works may take lots of time, such as calculating hash code for a `BlockId`.
 Maybe using a different replacement strategy in `BufferPoolMgr` results in better performance. However, it is not easy to show the improvement in the experiments.
 
 ## Deadline
+
 Sumbit your work before **2019/04/28 (Sun.) 23:59:59**.
