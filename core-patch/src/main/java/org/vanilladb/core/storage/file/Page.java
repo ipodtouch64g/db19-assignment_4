@@ -159,6 +159,10 @@ public class Page {
 			contents.get(offset, byteVal);
 			size = ByteHelper.toInteger(byteVal);
 			offset += ByteHelper.INT_SIZE;
+			
+			// The size should be smaller than the block size
+			if (size >= BLOCK_SIZE)
+				throw new RuntimeException("Bad size header");
 		}
 
 		// Get bytes and translate it to Constant
