@@ -107,8 +107,8 @@ public class BufferMgr implements TransactionLifecycleListener {
 	 * @return the buffer pinned to that block
 	 */
 	public Buffer pin(BlockId blk) {
-		synchronized (bufferPool) {
 			// Try to find out if this block has been pinned by this transaction
+			// This is done inside each thread, no need to sync!!
 			PinnedBuffer pinnedBuff = pinnedBuffers.get(blk);
 			if (pinnedBuff != null) {
 				pinnedBuff.pinnedCount++;
@@ -132,19 +132,22 @@ public class BufferMgr implements TransactionLifecycleListener {
 	
 				// If there is no such buffer or no available buffer,
 				// wait for it
+				// We can only sync this part to bufferPool
 				if (buff == null) {
-					waitingThreads.add(Thread.currentThread());
-	
-					while (buff == null && !waitingTooLong(timestamp)) {
-						bufferPool.wait(MAX_TIME);
-						if (waitingThreads.get(0).equals(Thread.currentThread()))
-							buff = bufferPool.pin(blk);
+					synchronized (bufferPool) {
+						waitingThreads.add(Thread.currentThread());
+						
+						while (buff == null && !waitingTooLong(timestamp)) {
+							bufferPool.wait(MAX_TIME);
+							if (waitingThreads.get(0).equals(Thread.currentThread()))
+								buff = bufferPool.pin(blk);
+						}
+		
+						waitingThreads.remove(Thread.currentThread());
+						
+						// Wake up other waiting threads (after leaving this critical section)
+						bufferPool.notifyAll();
 					}
-	
-					waitingThreads.remove(Thread.currentThread());
-					
-					// Wake up other waiting threads (after leaving this critical section)
-					bufferPool.notifyAll();
 				}
 	
 				// If it still has no buffer after a long wait,
@@ -160,7 +163,7 @@ public class BufferMgr implements TransactionLifecycleListener {
 			} catch (InterruptedException e) {
 				throw new BufferAbortException();
 			}
-		}
+		
 	}
 
 	/**
@@ -175,7 +178,7 @@ public class BufferMgr implements TransactionLifecycleListener {
 	 * @return the buffer pinned to that block
 	 */
 	public Buffer pinNew(String fileName, PageFormatter fmtr) {
-		synchronized (bufferPool) {
+
 			if (pinnedBuffers.size() == BUFFER_POOL_SIZE)
 				throw new BufferAbortException();
 			try {
@@ -187,18 +190,22 @@ public class BufferMgr implements TransactionLifecycleListener {
 	
 				// If there is no such buffer or no available buffer,
 				// wait for it
+				// only sync here
 				if (buff == null) {
-					waitingThreads.add(Thread.currentThread());
+					synchronized(bufferPool) {
+						waitingThreads.add(Thread.currentThread());
 
-					while (buff == null && !waitingTooLong(timestamp)) {
-						bufferPool.wait(MAX_TIME);
-						if (waitingThreads.get(0).equals(Thread.currentThread()))
-							buff = bufferPool.pinNew(fileName, fmtr);
+						while (buff == null && !waitingTooLong(timestamp)) {
+							bufferPool.wait(MAX_TIME);
+							if (waitingThreads.get(0).equals(Thread.currentThread()))
+								buff = bufferPool.pinNew(fileName, fmtr);
+						}
+
+						waitingThreads.remove(Thread.currentThread());
+						
+						bufferPool.notifyAll();
 					}
-
-					waitingThreads.remove(Thread.currentThread());
 					
-					bufferPool.notifyAll();
 				}
 	
 				// If it still has no buffer after a long wait,
@@ -215,7 +222,6 @@ public class BufferMgr implements TransactionLifecycleListener {
 				throw new BufferAbortException();
 			}
 		}
-	}
 
 	/**
 	 * Unpins the specified buffer. If the buffer's pin count becomes 0, then
@@ -225,7 +231,7 @@ public class BufferMgr implements TransactionLifecycleListener {
 	 *            the buffer to be unpinned
 	 */
 	public void unpin(Buffer buff) {
-		synchronized (bufferPool) {
+		
 			BlockId blk = buff.block();
 			PinnedBuffer pinnedBuff = pinnedBuffers.get(blk);
 	
@@ -235,19 +241,21 @@ public class BufferMgr implements TransactionLifecycleListener {
 				if (pinnedBuff.pinnedCount == 0) {
 					bufferPool.unpin(buff);
 					pinnedBuffers.remove(blk);
-					bufferPool.notifyAll();
+					// only sync notifyAll
+					synchronized(bufferPool) {
+						bufferPool.notifyAll();
+					}
 				}
 			}
-		}
+		
 	}
 
 	/**
 	 * Flushes all dirty buffers.
 	 */
 	public void flushAll() {
-		synchronized (bufferPool) {
-			bufferPool.flushAll();
-		}
+		// no need to sync flush
+		bufferPool.flushAll();
 	}
 
 	/**
@@ -257,9 +265,9 @@ public class BufferMgr implements TransactionLifecycleListener {
 	 *            the transaction's id number
 	 */
 	public void flushAll(long txNum) {
-		synchronized (bufferPool) {
-			bufferPool.flushAll(txNum);
-		}
+		// no need to sync flush
+		bufferPool.flushAll(txNum);
+
 	}
 
 	/**
@@ -268,22 +276,23 @@ public class BufferMgr implements TransactionLifecycleListener {
 	 * @return the number of available buffers`
 	 */
 	public int available() {
-		synchronized (bufferPool) {
-			return bufferPool.available();
-		}
+		// no need to sync
+		return bufferPool.available();
 	}
 
 	private void unpinAll(Transaction tx) {
-		synchronized (bufferPool) {
+		
 			// Copy the set of pinned buffers to avoid ConcurrentModificationException
 			Set<PinnedBuffer> pinnedBuffs = new HashSet<PinnedBuffer>(pinnedBuffers.values());
 			if (pinnedBuffs != null) {
 				for (PinnedBuffer pinnedBuff : pinnedBuffs)
 					bufferPool.unpin(pinnedBuff.buffer);
 			}
-	
-			bufferPool.notifyAll();
-		}
+			// only sync notifyAll
+			synchronized(bufferPool) {
+				bufferPool.notifyAll();
+			}
+		
 	}
 
 	/**
@@ -294,7 +303,7 @@ public class BufferMgr implements TransactionLifecycleListener {
 		if (logger.isLoggable(Level.WARNING))
 			logger.warning("Tx." + txNum + " is re-pinning all buffers");
 		
-		synchronized (bufferPool) {
+		
 			try {
 				// Copy the pinned buffers to avoid ConcurrentModificationException
 				List<BlockId> blksToBeRepinned = new LinkedList<BlockId>();
@@ -311,7 +320,11 @@ public class BufferMgr implements TransactionLifecycleListener {
 					unpin(buf);
 	
 				// Wait other threads pinning blocks
-				bufferPool.wait(MAX_TIME);
+				// only sync wait
+				synchronized(bufferPool) {
+					bufferPool.wait(MAX_TIME);
+				}
+				
 	
 				// Re-pin all blocks
 				for (BlockId blk : blksToBeRepinned)
@@ -320,7 +333,7 @@ public class BufferMgr implements TransactionLifecycleListener {
 				e.printStackTrace();
 			}
 		}
-	}
+	
 
 	private boolean waitingTooLong(long startTime) {
 		return System.currentTimeMillis() - startTime + EPSILON > MAX_TIME;
