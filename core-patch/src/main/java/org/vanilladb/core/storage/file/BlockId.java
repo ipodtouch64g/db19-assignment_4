@@ -23,7 +23,8 @@ package org.vanilladb.core.storage.file;
 public class BlockId {
 	private String fileName;
 	private long blkNum;
-
+	private int hashcode;
+	private String str;
 	/**
 	 * Constructs a block ID for the specified fileName and block number.
 	 * 
@@ -35,6 +36,9 @@ public class BlockId {
 	public BlockId(String fileName, long blkNum) {
 		this.fileName = fileName;
 		this.blkNum = blkNum;
+		// calculate hashCode here to save time~~~
+		str = "[file " + fileName + ", block " + blkNum + "]";
+		hashcode = str.hashCode();
 	}
 
 	/**
@@ -65,10 +69,10 @@ public class BlockId {
 	}
 
 	public String toString() {
-		return "[file " + fileName + ", block " + blkNum + "]";
+		return str;
 	}
 
 	public int hashCode() {
-		return toString().hashCode();
+		return hashcode;
 	}
 }
