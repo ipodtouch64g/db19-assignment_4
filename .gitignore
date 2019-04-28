@@ -2,7 +2,7 @@
 .settings/
 .recommenders
 target/
-
+delete_prev_server.sh
 # Eclipse project
 .classpath
 .project
