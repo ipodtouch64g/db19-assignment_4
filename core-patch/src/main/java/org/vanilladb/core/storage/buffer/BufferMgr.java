@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -64,7 +65,8 @@ public class BufferMgr implements TransactionLifecycleListener {
 	
 	// Singleton - only one instance in the whole process
 	protected static BufferPoolMgr bufferPool = new BufferPoolMgr(BUFFER_POOL_SIZE);
-	protected static List<Thread> waitingThreads = new LinkedList<Thread>();
+	protected static ConcurrentLinkedQueue<Thread> waitingThreads = new ConcurrentLinkedQueue<Thread>();
+	
 
 	class PinnedBuffer {
 		Buffer buffer;
@@ -134,20 +136,17 @@ public class BufferMgr implements TransactionLifecycleListener {
 				// wait for it
 				// We can only sync this part to bufferPool
 				if (buff == null) {
-					synchronized (bufferPool) {
-						waitingThreads.add(Thread.currentThread());
-						
+					waitingThreads.add(Thread.currentThread());
+					synchronized (bufferPool) {		
 						while (buff == null && !waitingTooLong(timestamp)) {
 							bufferPool.wait(MAX_TIME);
-							if (waitingThreads.get(0).equals(Thread.currentThread()))
+							if (waitingThreads.element().equals(Thread.currentThread()))
 								buff = bufferPool.pin(blk);
 						}
-		
-						waitingThreads.remove(Thread.currentThread());
-						
 						// Wake up other waiting threads (after leaving this critical section)
 						bufferPool.notifyAll();
 					}
+					waitingThreads.remove(Thread.currentThread());
 				}
 	
 				// If it still has no buffer after a long wait,
@@ -192,20 +191,16 @@ public class BufferMgr implements TransactionLifecycleListener {
 				// wait for it
 				// only sync here
 				if (buff == null) {
+					waitingThreads.add(Thread.currentThread());
 					synchronized(bufferPool) {
-						waitingThreads.add(Thread.currentThread());
-
 						while (buff == null && !waitingTooLong(timestamp)) {
 							bufferPool.wait(MAX_TIME);
-							if (waitingThreads.get(0).equals(Thread.currentThread()))
+							if (waitingThreads.element().equals(Thread.currentThread()))
 								buff = bufferPool.pinNew(fileName, fmtr);
 						}
-
-						waitingThreads.remove(Thread.currentThread());
-						
 						bufferPool.notifyAll();
 					}
-					
+					waitingThreads.remove(Thread.currentThread());	
 				}
 	
 				// If it still has no buffer after a long wait,
